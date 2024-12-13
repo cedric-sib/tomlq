@@ -1,6 +1,6 @@
 use clap::Parser;
-use toml::Value;
 use std::{fs::File, io::{self, Read}, path::PathBuf};
+use toml::Value;
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
@@ -56,6 +56,10 @@ fn main() -> anyhow::Result<()> {
     let mut input_string = String::new();
     reader.read_to_string(&mut input_string)?;
 
+    if let Ok(json_value) = serde_json::from_str::<toml::Value>(&input_string) {
+        // If the input is JSON, convert it to TOML
+        input_string = toml::to_string(&json_value)?;
+    }
     let toml_value: toml::Value = toml::from_str(&input_string)?;
 
     let result: &Value = tq::extract_pattern(&toml_value, &app.pattern)?;
